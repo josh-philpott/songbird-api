@@ -29,7 +29,7 @@ router.get('/login', (req, res, next) => {
   res.cookie(stateKey, state)
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email'
+  var scope = 'user-read-private user-read-email streaming'
   res.send(
     'https://accounts.spotify.com/authorize?' +
       querystring.stringify({
