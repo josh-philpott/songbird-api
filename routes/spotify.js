@@ -30,7 +30,7 @@ router.get('/login', (req, res, next) => {
 
   // your application requests authorization
   var scope =
-    'user-read-private user-read-email streaming user-read-currently-playing user-read-playback-state'
+    'user-read-private user-read-email streaming user-read-currently-playing user-read-playback-state user-modify-playback-state'
   res.send(
     'https://accounts.spotify.com/authorize?' +
       querystring.stringify({

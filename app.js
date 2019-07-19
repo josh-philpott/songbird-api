@@ -8,8 +8,10 @@ const logger = require('morgan')
 const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
 const spotifyRouter = require('./routes/spotify')
+const broadcastRouter = require('./routes/broadcast')
 
 const app = express()
+
 app.listen(3002)
 
 app.use(cors())
@@ -22,5 +24,6 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/api', indexRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/spotify', spotifyRouter)
+app.use('/api/broadcast', broadcastRouter)
 
 module.exports = app
