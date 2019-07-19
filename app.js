@@ -10,7 +10,7 @@ const usersRouter = require('./routes/users')
 const spotifyRouter = require('./routes/spotify')
 
 const app = express()
-app.listen(3001)
+app.listen(3002)
 
 app.use(cors())
 app.use(logger('dev'))

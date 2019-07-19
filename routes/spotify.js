@@ -9,7 +9,7 @@ const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
 
 const stateKey = 'spotify_auth_state'
 
-const redirectUri = 'http://localhost:3002/spotify/callback' // Your redirect uri
+const redirectUri = 'http://localhost:3001/spotify/callback' // Your redirect uri
 
 const generateRandomString = length => {
   var text = ''
@@ -29,7 +29,8 @@ router.get('/login', (req, res, next) => {
   res.cookie(stateKey, state)
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email streaming'
+  var scope =
+    'user-read-private user-read-email streaming user-read-currently-playing user-read-playback-state'
   res.send(
     'https://accounts.spotify.com/authorize?' +
       querystring.stringify({
