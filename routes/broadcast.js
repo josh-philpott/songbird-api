@@ -1,9 +1,29 @@
 const express = require('express')
+const generate = require('nanoid/async/generate')
+
 const router = express.Router()
 
+//TODO: Move this to a postgres or redis
 const currentBroadcasts = {}
 
-router.post('/update', async function(req, res) {
+/**
+ * Create a new broadcast
+ *
+ * Returns the broadcastId
+ */
+router.post('/create', async (req, res) => {
+  const broadcastId = await generate('0123456789abcdefghijklmnopqrstuvwxyz', 6)
+  currentBroadcasts[broadcastId] = {}
+  console.log(broadcastId)
+  res.send(broadcastId)
+})
+
+router.get('/list', (req, res) => {
+  const broadcasts = Object.keys(currentBroadcasts)
+  res.send(broadcasts)
+})
+
+router.put('/update', async (req, res) => {
   const broadcastId = req.body.currentlyPlaying.broadcastId //TODO: Fix this
   const currentlyPlaying = req.body.currentlyPlaying.currentlyPlaying
 
@@ -23,7 +43,7 @@ router.post('/update', async function(req, res) {
   res.send()
 })
 
-router.get('/:broadcastId', async function(req, res) {
+router.get('/:broadcastId', async (req, res) => {
   const broadcastId = req.params.broadcastId
   res.send(currentBroadcasts[broadcastId])
 })
