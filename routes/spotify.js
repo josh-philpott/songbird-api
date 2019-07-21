@@ -88,10 +88,6 @@ router.post('/getAccessToken', async function(req, res) {
       }
     )
 
-    res.cookie('spotify_access_token', response.data.access_token, {
-      maxAge: response.data.expires_in * 1000
-    })
-    res.cookie('spotify_refresh_token', response.data.refresh_token)
     res.send(response.data)
   } catch (error) {
     console.log(error)
