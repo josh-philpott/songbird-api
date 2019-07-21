@@ -5,8 +5,6 @@ const request = require('request')
 const querystring = require('querystring')
 
 const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, APP_BASE_URL } = process.env
-console.log(SPOTIFY_CLIENT_ID)
-console.log(SPOTIFY_CLIENT_SECRET)
 
 const stateKey = 'spotify_auth_state'
 
@@ -27,7 +25,11 @@ router.get('/login', (req, res, next) => {
   var state = generateRandomString(16)
   var stateKey = 'spotify_auth_state'
 
-  res.cookie(stateKey, state)
+  res.cookie(stateKey, state, {
+    httpOnly: false,
+    signed: false,
+    domain: 'songbridge-api.herokuapp.com'
+  })
 
   // your application requests authorization
   var scope =
