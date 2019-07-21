@@ -4,12 +4,13 @@ const router = express.Router()
 const request = require('request')
 const querystring = require('querystring')
 
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
+const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, APP_BASE_URL } = process.env
+console.log(SPOTIFY_CLIENT_ID)
+console.log(SPOTIFY_CLIENT_SECRET)
 
 const stateKey = 'spotify_auth_state'
 
-const redirectUri = 'http://localhost:3001/spotify/callback' // Your redirect uri
+const redirectUri = `${APP_BASE_URL}/spotify/callback` // Your redirect uri
 
 const generateRandomString = length => {
   var text = ''
@@ -35,7 +36,7 @@ router.get('/login', (req, res, next) => {
     'https://accounts.spotify.com/authorize?' +
       querystring.stringify({
         response_type: 'code',
-        client_id: CLIENT_ID,
+        client_id: SPOTIFY_CLIENT_ID,
         scope: scope,
         redirect_uri: redirectUri,
         state: state
@@ -75,7 +76,9 @@ router.post('/getAccessToken', async function(req, res) {
           headers: {
             Authorization:
               'Basic ' +
-              new Buffer(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'),
+              new Buffer(
+                SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET
+              ).toString('base64'),
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         }
