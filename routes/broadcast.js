@@ -13,7 +13,11 @@ const currentBroadcasts = {}
  */
 router.post('/create', async (req, res) => {
   const broadcastId = await generate('0123456789abcdefghijklmnopqrstuvwxyz', 6)
-  currentBroadcasts[broadcastId] = {}
+  const { broadcasterName, profileImageUrl } = req.body
+  currentBroadcasts[broadcastId] = {
+    broadcasterName,
+    profileImageUrl
+  }
   console.log(broadcastId)
   res.send(broadcastId)
 })
@@ -24,10 +28,15 @@ router.get('/list', (req, res) => {
 })
 
 router.put('/update', async (req, res) => {
-  const broadcastId = req.body.currentlyPlaying.broadcastId //TODO: Fix this
-  const currentlyPlaying = req.body.currentlyPlaying.currentlyPlaying
+  const broadcastId = req.body.currentlyPlaying.broadcastId
+  const currentlyPlaying = req.body.currentlyPlaying.currentlyPlaying //TODO: Fix this
 
-  currentBroadcasts[broadcastId] = currentlyPlaying
+  currentBroadcasts[broadcastId] = {
+    ...currentBroadcasts[broadcastId],
+    currentlyPlaying
+  }
+
+  console.log(currentBroadcasts[broadcastId])
 
   let progress_s = currentlyPlaying.progress_ms / 1000
   const progress_m = Math.floor(progress_s / 60)
