@@ -12,8 +12,12 @@ const currentBroadcasts = {}
  * Returns the broadcastId
  */
 router.post('/create', async (req, res) => {
-  const broadcastId = await generate('0123456789abcdefghijklmnopqrstuvwxyz', 6)
-  const { broadcasterName, profileImageUrl } = req.body
+  const { broadcasterName, profileImageUrl, debug = false } = req.body
+
+  const broadcastId = debug
+    ? 'debugid'
+    : await generate('0123456789abcdefghijklmnopqrstuvwxyz', 6)
+
   currentBroadcasts[broadcastId] = {
     broadcasterName,
     profileImageUrl
