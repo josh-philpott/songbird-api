@@ -100,4 +100,40 @@ router.post('/getAccessToken', async function(req, res) {
   }
 })
 
+router.post('/refreshToken', async (req, res, next) => {
+  try {
+    const { refresh_token } = req.body
+
+    const urlParams = querystring.stringify({
+      grant_type: 'refresh_token',
+      refresh_token
+    })
+
+    const response = await axios.post(
+      'https://accounts.spotify.com/api/token',
+      urlParams,
+      {
+        headers: {
+          Authorization:
+            'Basic ' +
+            new Buffer(
+              SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET
+            ).toString('base64'),
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    )
+
+    res.send(response.data)
+  } catch (err) {
+    console.log(err)
+    res.redirect(
+      '/#' +
+        querystring.stringify({
+          error: 'invalid_token'
+        })
+    )
+  }
+})
+
 module.exports = router
