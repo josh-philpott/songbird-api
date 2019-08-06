@@ -27,4 +27,11 @@ app.use('/api/users', usersRouter)
 app.use('/api/spotify', spotifyRouter)
 app.use('/api/broadcast', broadcastRouter)
 
+//default error handler
+app.use(function(err, req, res, next) {
+  console.error(err)
+  res.status(500)
+  next(err)
+})
+
 module.exports = app

@@ -1,7 +1,6 @@
 const axios = require('axios')
 const express = require('express')
 const router = express.Router()
-const request = require('request')
 const querystring = require('querystring')
 
 const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, APP_BASE_URL } = process.env
