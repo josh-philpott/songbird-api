@@ -1,3 +1,5 @@
+const generate = require('nanoid/async/generate')
+
 //TODO: Need to come up with a legitimate storage mechanism for broadcasts
 const currentBroadcasts = {}
 

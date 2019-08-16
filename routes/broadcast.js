@@ -1,6 +1,4 @@
 const express = require('express')
-const generate = require('nanoid/async/generate')
-
 const router = express.Router()
 
 const broadcastServices = require('../services/broadcast.services')
