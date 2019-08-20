@@ -3,21 +3,6 @@ const router = express.Router()
 
 const broadcastServices = require('../services/broadcast.services')
 
-/**
- * Create a new broadcast
- *
- * Returns the broadcastId
- */
-router.post('/create', async (req, res) => {
-  const { broadcasterName, profileImageUrl, debug = false } = req.body
-  const broadcastId = await broadcastServices.create(
-    broadcasterName,
-    profileImageUrl,
-    debug
-  )
-  res.send(broadcastId)
-})
-
 router.get('/list', (req, res) => {
   const broadcasts = broadcastServices.list()
   res.send(broadcasts)

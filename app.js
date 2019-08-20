@@ -11,7 +11,12 @@ const usersRouter = require('./routes/users')
 const spotifyRouter = require('./routes/spotify')
 const broadcastRouter = require('./routes/broadcast')
 
+const broadcastServices = require('./services/broadcast.services')
+
 const app = express()
+const http = require('http').createServer(app)
+const io = require('socket.io')(http)
+http.listen(8080, '127.0.0.1')
 
 app.listen(3002)
 
@@ -32,6 +37,46 @@ app.use(function(err, req, res, next) {
   console.error(err)
   res.status(500)
   next(err)
+})
+
+//TODO: Listener SOW message to start playing immedietly when they arraive
+io.on('connection', function(socket) {
+  console.log(`a user connected ${socket.id}`)
+
+  socket.on('create broadcast', async function(
+    broadcasterName,
+    profileImageUrl,
+    debug,
+    ackFunction
+  ) {
+    const broadcastId = await broadcastServices.create(
+      broadcasterName,
+      profileImageUrl,
+      debug,
+      socket.id
+    )
+
+    socket.join(broadcastId)
+    console.log(`Created broadcast ${broadcastId}`)
+
+    ackFunction(broadcastId)
+  })
+
+  socket.on('update broadcast', function(broadcastId, currentlyPlaying) {
+    broadcastServices.update(broadcastId, currentlyPlaying)
+    console.log(`broadcast updated: ${broadcastId}`)
+    socket.broadcast.to(broadcastId).emit('broadcast updated', currentlyPlaying)
+  })
+
+  socket.on('disconnect', function() {
+    console.log('user disconnected')
+    const broadcastId = broadcastServices.getBySocketId(socket.id)
+    if (broadcastId) {
+      console.log(`broadcaster disconnected ${JSON.stringify(broadcastId)}`)
+      //TODO: Handle broadcast ending in app. Add something to broadcast object for SOW message
+      socket.broadcast.to(broadcastId).emit('broadcast ended')
+    }
+  })
 })
 
 module.exports = app

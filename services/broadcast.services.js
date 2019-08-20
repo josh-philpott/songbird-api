@@ -1,17 +1,20 @@
 const generate = require('nanoid/async/generate')
+const { find, flatMap } = require('lodash')
 
 //TODO: Need to come up with a legitimate storage mechanism for broadcasts
 const currentBroadcasts = {}
 
-const create = async (broadcasterName, profileImageUrl, debug) => {
+const create = async (broadcasterName, profileImageUrl, debug, socketId) => {
   const broadcastId = debug
     ? 'debugid'
     : await generate('0123456789abcdefghijklmnopqrstuvwxyz', 6)
 
   currentBroadcasts[broadcastId] = {
+    broadcastId,
     broadcasterName,
     profileImageUrl,
-    lastUpdated: new Date()
+    lastUpdated: new Date(),
+    socketId
   }
 
   return broadcastId
@@ -33,9 +36,16 @@ const update = (broadcastId, currentlyPlaying) => {
   }
 }
 
+const getBySocketId = socketId => {
+  const broadcast = find(currentBroadcasts, { socketId })
+  const broadcastId = broadcast ? broadcast.broadcastId : null
+  return broadcastId
+}
+
 module.exports = {
   create,
   get,
   list,
-  update
+  update,
+  getBySocketId
 }
