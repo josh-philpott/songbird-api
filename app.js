@@ -16,9 +16,8 @@ const broadcastServices = require('./services/broadcast.services')
 const app = express()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
-http.listen(8080, '127.0.0.1')
-
-app.listen(3002)
+console.log(process.env.PORT)
+http.listen(process.env.PORT || 3001)
 
 app.use(logger('dev'))
 app.use(express.json())
@@ -38,8 +37,6 @@ app.use(function(err, req, res, next) {
   res.status(500)
   next(err)
 })
-
-//TODO: Listener SOW message to start playing immedietly when they arraive
 
 io.on('connection', function(socket) {
   console.log(`a user connected ${socket.id}`)
