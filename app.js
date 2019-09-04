@@ -40,19 +40,20 @@ app.use(function(err, req, res, next) {
 })
 
 //TODO: Listener SOW message to start playing immedietly when they arraive
+
 io.on('connection', function(socket) {
   console.log(`a user connected ${socket.id}`)
 
   socket.on('create broadcast', async function(
+    spotifyUserId,
     broadcasterName,
     profileImageUrl,
-    debug,
     ackFunction
   ) {
     const broadcastId = await broadcastServices.create(
+      spotifyUserId,
       broadcasterName,
       profileImageUrl,
-      debug,
       socket.id
     )
 
@@ -63,9 +64,18 @@ io.on('connection', function(socket) {
   })
 
   socket.on('update broadcast', function(broadcastId, currentlyPlaying) {
-    broadcastServices.update(broadcastId, currentlyPlaying)
+    const listenerUpdateRequired = broadcastServices.update(
+      broadcastId,
+      currentlyPlaying
+    )
     console.log(`broadcast updated: ${broadcastId}`)
-    socket.broadcast.to(broadcastId).emit('broadcast updated', currentlyPlaying)
+
+    if (listenerUpdateRequired) {
+      console.log(`listener update required: ${broadcastId}`)
+      socket.broadcast
+        .to(broadcastId)
+        .emit('broadcast updated', currentlyPlaying)
+    }
   })
 
   socket.on('disconnect', function() {
@@ -73,9 +83,18 @@ io.on('connection', function(socket) {
     const broadcastId = broadcastServices.getBySocketId(socket.id)
     if (broadcastId) {
       console.log(`broadcaster disconnected ${JSON.stringify(broadcastId)}`)
+      broadcastServices.handleBroadcasterDisconnect()
       //TODO: Handle broadcast ending in app. Add something to broadcast object for SOW message
       socket.broadcast.to(broadcastId).emit('broadcast ended')
     }
+  })
+
+  socket.on('join', function(broadcastId) {
+    socket.join(broadcastId)
+    socket.emit(
+      'broadcast updated',
+      broadcastServices.get(broadcastId).currentlyPlaying
+    )
   })
 })
 
