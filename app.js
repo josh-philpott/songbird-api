@@ -11,9 +11,13 @@ const usersRouter = require('./routes/users')
 const spotifyRouter = require('./routes/spotify')
 const broadcastRouter = require('./routes/broadcast')
 
-const app = express()
+const broadcastServices = require('./services/broadcast.services')
 
-app.listen(3002)
+const app = express()
+const http = require('http').createServer(app)
+const io = require('socket.io')(http)
+console.log(process.env.PORT)
+http.listen(process.env.PORT || 3001)
 
 app.use(logger('dev'))
 app.use(express.json())
@@ -32,6 +36,63 @@ app.use(function(err, req, res, next) {
   console.error(err)
   res.status(500)
   next(err)
+})
+
+io.on('connection', function(socket) {
+  console.log(`a user connected ${socket.id}`)
+
+  socket.on('create broadcast', async function(
+    spotifyUserId,
+    broadcasterName,
+    profileImageUrl,
+    ackFunction
+  ) {
+    const broadcastId = await broadcastServices.create(
+      spotifyUserId,
+      broadcasterName,
+      profileImageUrl,
+      socket.id
+    )
+
+    socket.join(broadcastId)
+    console.log(`Created broadcast ${broadcastId}`)
+
+    ackFunction(broadcastId)
+  })
+
+  socket.on('update broadcast', function(broadcastId, currentlyPlaying) {
+    const listenerUpdateRequired = broadcastServices.update(
+      broadcastId,
+      currentlyPlaying
+    )
+    console.log(`broadcast updated: ${broadcastId}`)
+
+    if (listenerUpdateRequired) {
+      console.log(`listener update required: ${broadcastId}`)
+      socket.broadcast
+        .to(broadcastId)
+        .emit('broadcast updated', currentlyPlaying)
+    }
+  })
+
+  socket.on('disconnect', function() {
+    console.log('user disconnected')
+    const broadcastId = broadcastServices.getBySocketId(socket.id)
+    if (broadcastId) {
+      console.log(`broadcaster disconnected ${JSON.stringify(broadcastId)}`)
+      broadcastServices.handleBroadcasterDisconnect()
+      //TODO: Handle broadcast ending in app. Add something to broadcast object for SOW message
+      socket.broadcast.to(broadcastId).emit('broadcast ended')
+    }
+  })
+
+  socket.on('join', function(broadcastId) {
+    socket.join(broadcastId)
+    socket.emit(
+      'broadcast updated',
+      broadcastServices.get(broadcastId).currentlyPlaying
+    )
+  })
 })
 
 module.exports = app
