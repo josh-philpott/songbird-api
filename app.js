@@ -81,8 +81,7 @@ io.on('connection', function(socket) {
     if (broadcastId) {
       console.log(`broadcaster disconnected ${JSON.stringify(broadcastId)}`)
       broadcastServices.handleBroadcasterDisconnect()
-      //TODO: Handle broadcast ending in app. Add something to broadcast object for SOW message
-      socket.broadcast.to(broadcastId).emit('broadcast ended')
+      socket.broadcast.to(broadcastId).emit('broadcaster disconnected')
     }
   })
 
