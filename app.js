@@ -77,20 +77,61 @@ io.on('connection', function(socket) {
 
   socket.on('disconnect', function() {
     console.log('user disconnected')
+
+    //check if it's the broadcaster that disconnected
     const broadcastId = broadcastServices.getBySocketId(socket.id)
     if (broadcastId) {
       console.log(`broadcaster disconnected ${JSON.stringify(broadcastId)}`)
       broadcastServices.handleBroadcasterDisconnect()
       socket.broadcast.to(broadcastId).emit('broadcaster disconnected')
+    } else {
+      //it was a listener that disconnected.
+      const broadcast = broadcastServices.removeViewer(socket.id)
+      if (broadcast) {
+        console.log('sending viewers update')
+        console.log(broadcast.viewers)
+        console.log(broadcast)
+        socket.broadcast
+          .to(broadcast.broadcastId)
+          .emit('viewers update', broadcast.viewers)
+      }
     }
   })
 
-  socket.on('join', function(broadcastId) {
+  /**
+   * Viewer joins a broadcast and sends along their profile id,
+   * profile image URL, and name
+   */
+  socket.on('join', function(
+    broadcastId,
+    isBroadcaster,
+    profileId,
+    name,
+    profileImageUrl
+  ) {
+    console.log('join')
     socket.join(broadcastId)
-    socket.emit(
-      'broadcast updated',
-      broadcastServices.get(broadcastId).currentlyPlaying
-    )
+
+    if (!isBroadcaster) {
+      const viewers = broadcastServices.addViewer(
+        broadcastId,
+        socket.id,
+        profileId,
+        name,
+        profileImageUrl
+      )
+
+      //user who just joined the broadcast will get a broadcast updated event
+      //and everyone on the broadcast will get a viewers updated
+      socket.emit(
+        'broadcast updated',
+        broadcastServices.get(broadcastId).currentlyPlaying
+      )
+      socket.emit('viewers update', viewers)
+
+      console.log('viewers updated', viewers)
+      socket.broadcast.to(broadcastId).emit('viewers update', viewers)
+    }
   })
 })
 

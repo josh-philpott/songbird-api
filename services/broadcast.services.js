@@ -1,8 +1,8 @@
 const generate = require('nanoid/async/generate')
-const { find, flatMap } = require('lodash')
+const { find, remove, flatMap } = require('lodash')
 
 //TODO: Need to come up with a legitimate storage mechanism for broadcasts
-const currentBroadcasts = {}
+const broadcasts = {}
 
 const create = async (
   spotifyUserId,
@@ -12,23 +12,28 @@ const create = async (
 ) => {
   const broadcastId = spotifyUserId
 
-  currentBroadcasts[broadcastId] = {
+  broadcasts[broadcastId] = {
     broadcastId,
     broadcasterName,
     profileImageUrl,
     lastUpdated: new Date(),
-    socketId
+    socketId,
+    viewers: []
   }
+
+  console.log('created!!!')
+  console.log(broadcasts[broadcastId])
+  console.log('-------------end create--------------')
 
   return broadcastId
 }
 
 const get = broadcastId => {
-  return currentBroadcasts[broadcastId]
+  return broadcasts[broadcastId]
 }
 
 const list = () => {
-  return Object.keys(currentBroadcasts)
+  return Object.keys(broadcasts)
 }
 
 /**
@@ -61,9 +66,9 @@ const shouldUpdateListeners = (prev, prevUpdateTime, current) => {
 const update = (broadcastId, currentlyPlaying) => {
   //determine if we need to update listeners
   let prev, prevUpdateTime
-  if (currentBroadcasts[broadcastId]) {
-    prev = currentBroadcasts[broadcastId].currentlyPlaying
-    prevUpdateTime = currentBroadcasts[broadcastId].lastUpdated
+  if (broadcasts[broadcastId]) {
+    prev = broadcasts[broadcastId].currentlyPlaying
+    prevUpdateTime = broadcasts[broadcastId].lastUpdated
   }
   const updateListeners = shouldUpdateListeners(
     prev,
@@ -71,8 +76,8 @@ const update = (broadcastId, currentlyPlaying) => {
     currentlyPlaying
   )
 
-  currentBroadcasts[broadcastId] = {
-    ...currentBroadcasts[broadcastId],
+  broadcasts[broadcastId] = {
+    ...broadcasts[broadcastId],
     currentlyPlaying,
     status: 'live',
     lastUpdated: new Date()
@@ -82,20 +87,57 @@ const update = (broadcastId, currentlyPlaying) => {
 }
 
 const handleBroadcasterDisconnect = broadcastId => {
-  currentBroadcasts[broadcastId] = {
-    ...currentBroadcasts[broadcastId],
+  broadcasts[broadcastId] = {
+    ...broadcasts[broadcastId],
     status: 'offline',
     lastUpdated: new Date()
   }
 }
 
 const getBySocketId = socketId => {
-  const broadcast = find(currentBroadcasts, { socketId })
+  const broadcast = find(broadcasts, { socketId })
   const broadcastId = broadcast ? broadcast.broadcastId : null
   return broadcastId
 }
 
+const addViewer = (broadcastId, socketId, id, name, profileImageUrl) => {
+  const broadcast = broadcasts[broadcastId]
+  if (broadcast) {
+    if (!broadcast.viewers) {
+      broadcast.viewers = []
+    }
+
+    broadcast.viewers.push({
+      socketId,
+      id,
+      name,
+      profileImageUrl
+    })
+    return broadcast.viewers
+  }
+}
+
+const removeViewer = socketId => {
+  //find broadcast where the viewers array contains an object with 'id'
+  const broadcastWithViewer = find(broadcasts, broadcast => {
+    const viewer = find(broadcast.viewers, { socketId })
+    return !!viewer
+  })
+
+  if (broadcastWithViewer) {
+    const removedViewer = remove(broadcastWithViewer.viewers, { socketId })
+    console.log('removed ', removedViewer)
+
+    console.log('start broadcast----------------------')
+    console.log(broadcastWithViewer)
+    console.log('end  broadcast------------------------')
+    return broadcastWithViewer
+  }
+}
+
 module.exports = {
+  addViewer,
+  removeViewer,
   create,
   get,
   list,
