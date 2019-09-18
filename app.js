@@ -65,13 +65,11 @@ io.on('connection', function(socket) {
       broadcastId,
       currentlyPlaying
     )
-    console.log(`broadcast updated: ${broadcastId}`)
+    console.log(`broadcast ${broadcastId} updated by ${socket.id}`)
 
     if (listenerUpdateRequired) {
       console.log(`listener update required: ${broadcastId}`)
-      socket.broadcast
-        .to(broadcastId)
-        .emit('broadcast updated', currentlyPlaying)
+      io.in(broadcastId).emit('broadcast updated', currentlyPlaying)
     }
   })
 
@@ -123,10 +121,9 @@ io.on('connection', function(socket) {
 
       //user who just joined the broadcast will get a broadcast updated event
       //and everyone on the broadcast will get a viewers updated
-      socket.emit(
-        'broadcast updated',
-        broadcastServices.get(broadcastId).currentlyPlaying
-      )
+      const broadcast = broadcastServices.get(broadcastId)
+      const currentlyPlaying = broadcast ? broadcast.currentlyPlaying : null
+      socket.emit('broadcast updated', currentlyPlaying)
       socket.emit('viewers update', viewers)
 
       console.log('viewers updated', viewers)

@@ -115,6 +115,9 @@ const addViewer = (broadcastId, socketId, id, name, profileImageUrl) => {
     })
     return broadcast.viewers
   }
+  if (!broadcast) {
+    return []
+  }
 }
 
 const removeViewer = socketId => {
