@@ -1,22 +1,22 @@
 const express = require('express')
 const router = express.Router()
 
-const broadcastServices = require('../services/broadcast.services')
+const broadcastActions = require('../services/broadcast.actions')
 
-router.get('/list', (req, res) => {
-  const broadcasts = broadcastServices.list()
-  res.send(broadcasts)
+router.get('/list', async (req, res) => {
+  const broadcastIds = await broadcastActions.list() //TODO: Add filter for listing inactive broadcasts
+  res.send(broadcastIds)
 })
 
-router.put('/update', (req, res) => {
+router.put('/update', async (req, res) => {
   const { broadcastId, currentlyPlaying } = req.body.currentlyPlaying //TODO: Fix this
-  broadcastServices.update(broadcastId, currentlyPlaying)
+  await broadcastActions.update(broadcastId, currentlyPlaying)
   res.send()
 })
 
 router.get('/:broadcastId', async (req, res) => {
   const { broadcastId } = req.params
-  const broadcast = broadcastServices.get(broadcastId)
+  const broadcast = await broadcastActions.get(broadcastId)
   res.send(broadcast)
 })
 
