@@ -16,7 +16,7 @@ router.put('/update', async (req, res) => {
 
 router.get('/:broadcastId', async (req, res) => {
   const { broadcastId } = req.params
-  const broadcast = await broadcastActions.get(broadcastId)
+  const broadcast = await broadcastActions.getById(broadcastId)
   res.send(broadcast)
 })
 

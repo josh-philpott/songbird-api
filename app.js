@@ -39,13 +39,15 @@ app.use(function(err, req, res, next) {
 
 io.on('connection', function(socket) {
   const {
-    handleCreateBroadcast,
-    handleUpdateBroadcast,
+    handleInitBroadcast,
     handleClientDisconnect,
-    handleClientJoin
+    handleClientJoin,
+    handleUpdateBroadcast,
+    handlePauseBroadcast
   } = makeHandlers(socket, io)
-  socket.on('create broadcast', handleCreateBroadcast)
+  socket.on('init broadcast', handleInitBroadcast)
   socket.on('update broadcast', handleUpdateBroadcast)
+  socket.on('pause broadcast', handlePauseBroadcast)
   socket.on('disconnect', handleClientDisconnect)
   socket.on('join', handleClientJoin)
 })

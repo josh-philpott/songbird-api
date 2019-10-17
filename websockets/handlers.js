@@ -2,13 +2,13 @@ const broadcastActions = require('../services/broadcast.actions')
 const { uniq } = require('lodash')
 
 const makeHandlers = (client, socketIO) => {
-  const handleCreateBroadcast = async (
+  const handleInitBroadcast = async (
     spotifyUserId,
     broadcasterName,
     profileImageUrl,
     ackFunction
   ) => {
-    console.log('Called handleCreateBroadcast')
+    console.log('Called init broadcast')
     const broadcastId = await broadcastActions.setupBroadcast(
       spotifyUserId,
       broadcasterName,
@@ -20,19 +20,6 @@ const makeHandlers = (client, socketIO) => {
     console.log(`Created broadcast ${broadcastId}`)
 
     ackFunction(broadcastId)
-  }
-
-  const handleUpdateBroadcast = (broadcastId, currentlyPlaying) => {
-    const listenerUpdateRequired = broadcastActions.update(
-      broadcastId,
-      currentlyPlaying
-    )
-    console.log(`broadcast ${broadcastId} updated by ${client.id}`)
-
-    if (listenerUpdateRequired) {
-      console.log(`Updating listeners {broadcastId: ${broadcastId}}`)
-      socketIO.in(broadcastId).emit('broadcast updated', currentlyPlaying)
-    }
   }
 
   const handleClientDisconnect = async () => {
@@ -101,7 +88,7 @@ const makeHandlers = (client, socketIO) => {
 
       //user who just joined the broadcast will get a broadcast updated event
       //and everyone on the broadcast will get a viewers updated
-      const broadcast = await broadcastActions.get(broadcastId)
+      const broadcast = await broadcastActions.getById(broadcastId)
       console.log(broadcast)
       const currentlyPlaying = broadcast ? broadcast.currentlyPlaying : null
       if (currentlyPlaying) {
@@ -114,11 +101,31 @@ const makeHandlers = (client, socketIO) => {
     }
   }
 
+  const handleUpdateBroadcast = (broadcastId, currentlyPlaying) => {
+    const listenerUpdateRequired = broadcastActions.update(
+      broadcastId,
+      currentlyPlaying
+    )
+    console.log(`broadcast ${broadcastId} updated by ${client.id}`)
+
+    if (listenerUpdateRequired) {
+      console.log(`Updating listeners {broadcastId: ${broadcastId}}`)
+      socketIO.in(broadcastId).emit('broadcast updated', currentlyPlaying)
+    }
+  }
+
+  const handlePauseBroadcast = async broadcastId => {
+    console.log('handling pause broadcast: ', broadcastId)
+    await broadcastActions.pauseBroadcasting(broadcastId)
+    socketIO.in(broadcastId).emit('broadcaster paused')
+  }
+
   return {
-    handleCreateBroadcast,
-    handleUpdateBroadcast,
+    handleInitBroadcast,
     handleClientDisconnect,
-    handleClientJoin
+    handleClientJoin,
+    handleUpdateBroadcast,
+    handlePauseBroadcast
   }
 }
 

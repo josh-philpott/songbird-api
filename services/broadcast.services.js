@@ -31,10 +31,10 @@ const updateBroadcasterInfo = async (
     })
 }
 
-const updateIsLive = async (id, isLive) => {
+const updateIsBroadcasterConnected = async (id, isBroadcasterConnected) => {
   return await knex('broadcasts')
     .where({ id })
-    .update({ isLive, lastUpdated: new Date() })
+    .update({ isBroadcasterConnected, lastUpdated: new Date() })
 }
 
 const getById = async id => {
@@ -63,6 +63,25 @@ const getBySocketId = async socketId => {
     .first()
 }
 
+const updateCurrentlyPlaying = async (id, currentlyPlaying) => {
+  await knex('broadcasts')
+    .where({ id })
+    .update({
+      isBroadcasterConnected: true,
+      isBroadcasting: true,
+      currentlyPlaying,
+      lastUpdated: new Date()
+    })
+}
+
+const updateIsBroadcasting = async (id, isBroadcasting) => {
+  await knex('broadcasts')
+    .where({ id })
+    .update({
+      isBroadcasting
+    })
+}
+
 module.exports = {
   getById,
   getBySocketId,
@@ -70,5 +89,7 @@ module.exports = {
   getIds,
   insertBroadcasterInfo,
   updateBroadcasterInfo,
-  updateIsLive
+  updateCurrentlyPlaying,
+  updateIsBroadcasterConnected,
+  updateIsBroadcasting
 }

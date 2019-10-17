@@ -39,7 +39,7 @@ const setupBroadcast = async (
   }
 }
 
-const get = async broadcastId => {
+const getById = async broadcastId => {
   return await broadcastServices.getById(broadcastId)
 }
 
@@ -95,16 +95,14 @@ const update = async (broadcastId, currentlyPlaying) => {
     currentlyPlaying
   )
 
-  await knex('broadcasts')
-    .where({ id: broadcastId })
-    .update({ isLive: true, currentlyPlaying, lastUpdated: new Date() })
+  await broadcastServices.updateCurrentlyPlaying(broadcastId, currentlyPlaying)
 
   return updateListeners
 }
 
 const handleBroadcasterDisconnect = async broadcastId => {
   console.log('handle broadcaster disconnect', broadcastId)
-  await broadcastServices.updateIsLive(broadcastId, false)
+  await broadcastServices.updateIsBroadcasterConnected(broadcastId, false)
 }
 
 const getBySocketId = async socketId => {
@@ -133,14 +131,19 @@ const getViewers = async broadcastId => {
   return await viewerServices.getViewersByBroadcastId(broadcastId)
 }
 
+const pauseBroadcasting = async broadcastId => {
+  return await broadcastServices.updateIsBroadcasting(broadcastId, false)
+}
+
 module.exports = {
   addViewer,
+  getById,
+  getBySocketId,
   getViewers,
+  handleBroadcasterDisconnect,
+  list,
+  pauseBroadcasting,
   removeViewer,
   setupBroadcast,
-  get,
-  list,
-  update,
-  getBySocketId,
-  handleBroadcasterDisconnect
+  update
 }
