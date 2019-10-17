@@ -4,7 +4,7 @@ const cors = require('cors')
 const express = require('express')
 const path = require('path')
 const cookieParser = require('cookie-parser')
-const logger = require('morgan')
+const logger = require('./logger')
 
 const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
@@ -13,12 +13,12 @@ const broadcastRouter = require('./routes/broadcast')
 
 const { makeHandlers } = require('./websockets/handlers')
 
+logger.info('Booting songbridge api')
 const app = express()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 http.listen(process.env.PORT || 3001)
 
-app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
@@ -32,7 +32,7 @@ app.use('/api/broadcast', broadcastRouter)
 
 //default error handler
 app.use(function(err, req, res, next) {
-  console.error(err)
+  logger.error(err)
   res.status(500)
   next(err)
 })

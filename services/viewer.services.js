@@ -1,4 +1,5 @@
 const knex = require('./postgres.services')
+const logger = require('../logger')
 
 const getViewersByBroadcastId = async broadcastId => {
   return await knex('viewers').where({ broadcastId })
@@ -21,7 +22,6 @@ const addViewerToBroadcast = async (
 }
 
 const removeViewerBySocketId = async socketId => {
-  console.log(`deleting viewers w/ socketId: ${socketId}`)
   return await knex('viewers')
     .where({ socketId })
     .returning('*')

@@ -1,5 +1,7 @@
-const broadcastActions = require('../services/broadcast.actions')
 const { uniq } = require('lodash')
+
+const broadcastActions = require('../services/broadcast.actions')
+const logger = require('../logger')
 
 const makeHandlers = (client, socketIO) => {
   const handleInitBroadcast = async (
@@ -8,7 +10,7 @@ const makeHandlers = (client, socketIO) => {
     profileImageUrl,
     ackFunction
   ) => {
-    console.log('Called init broadcast')
+    logger.debug('Called init broadcast')
     const broadcastId = await broadcastActions.setupBroadcast(
       spotifyUserId,
       broadcasterName,
@@ -17,7 +19,7 @@ const makeHandlers = (client, socketIO) => {
     )
 
     client.join(broadcastId)
-    console.log(`Created broadcast ${broadcastId}`)
+    logger.info(`broadcast: ${broadcastId} - initialized`)
 
     ackFunction(broadcastId)
   }
@@ -26,7 +28,7 @@ const makeHandlers = (client, socketIO) => {
     //check if there's a broadcast running off the disconnected socket
     const broadcast = await broadcastActions.getBySocketId(client.id)
     if (broadcast) {
-      console.log(`broadcaster disconnected ${JSON.stringify(broadcast.id)}`)
+      logger.info(`broadcast: ${broadcast.id} - broadcaster disconnected`)
       broadcastActions.handleBroadcasterDisconnect(broadcast.id)
       client.broadcast.to(broadcast.id).emit('broadcaster disconnected')
     }
@@ -37,24 +39,21 @@ const makeHandlers = (client, socketIO) => {
       const updatedBroadcastIds = removedViewers.map(rv => {
         return rv.broadcastId
       })
+
       const uniqBroadcastIds = uniq(updatedBroadcastIds)
-      console.log(uniqBroadcastIds)
-      console.log(`Removing ${client.id} from broadcasts ${uniqBroadcastIds}`)
       uniqBroadcastIds.forEach(async broadcastId => {
         const viewers = await broadcastActions.getViewers(broadcastId)
-        console.log(
-          `sending viewers update to ${broadcastId} - viewers: ${viewers}`
+        logger.info(
+          `broadcast: ${broadcastId} - client ${client.id} disconnected`
         )
 
         client.broadcast.to(broadcastId).emit('viewers update', viewers)
       })
     }
-    console.log('removed viewers', removedViewers)
+
     if (removedViewers) {
       //it was a listener that disconnected.
-      const removedViewers = await broadcastActions.removeViewer(client.id)
-      console.log('removed viewers', removedViewers)
-
+      await broadcastActions.removeViewer(client.id)
       if (broadcast) {
         client.broadcast
           .to(broadcast.broadcastId)
@@ -70,9 +69,6 @@ const makeHandlers = (client, socketIO) => {
     name,
     profileImageUrl
   ) => {
-    console.log(
-      `client ${client.id} (user: ${profileId}) requested to join ${broadcastId}`
-    )
     client.join(broadcastId)
 
     if (broadcastId !== profileId) {
@@ -85,37 +81,40 @@ const makeHandlers = (client, socketIO) => {
       )
 
       const viewers = await broadcastActions.getViewers(broadcastId)
-
-      //user who just joined the broadcast will get a broadcast updated event
-      //and everyone on the broadcast will get a viewers updated
-      const broadcast = await broadcastActions.getById(broadcastId)
-      console.log(broadcast)
-      const currentlyPlaying = broadcast ? broadcast.currentlyPlaying : null
-      if (currentlyPlaying) {
-        client.emit('broadcast updated', currentlyPlaying)
-      }
       client.emit('viewers update', viewers)
 
-      console.log('viewers updated', viewers)
+      logger.info(`broadcast: ${broadcastId} - viewers updated `, viewers)
       client.broadcast.to(broadcastId).emit('viewers update', viewers)
     }
+
+    //user who just joined the broadcast will get a broadcast updated event
+    //and everyone on the broadcast will get a viewers updated
+    const broadcast = await broadcastActions.getById(broadcastId)
+    const currentlyPlaying = broadcast ? broadcast.currentlyPlaying : null
+    if (currentlyPlaying) {
+      client.emit('broadcast updated', currentlyPlaying)
+    }
+
+    logger.info(
+      `broadcast: ${broadcastId} - client ${client.id}|${profileId} joined`
+    )
   }
 
-  const handleUpdateBroadcast = (broadcastId, currentlyPlaying) => {
-    const listenerUpdateRequired = broadcastActions.update(
+  const handleUpdateBroadcast = async (broadcastId, currentlyPlaying) => {
+    const listenerUpdateRequired = await broadcastActions.update(
       broadcastId,
       currentlyPlaying
     )
-    console.log(`broadcast ${broadcastId} updated by ${client.id}`)
+    logger.info(`broadcast: ${broadcastId} - updated by ${client.id}`)
 
     if (listenerUpdateRequired) {
-      console.log(`Updating listeners {broadcastId: ${broadcastId}}`)
+      logger.info(`broadcast: ${broadcastId} - listener update required`)
       socketIO.in(broadcastId).emit('broadcast updated', currentlyPlaying)
     }
   }
 
   const handlePauseBroadcast = async broadcastId => {
-    console.log('handling pause broadcast: ', broadcastId)
+    logger.info(`broadcast: ${broadcastId} - paused`)
     await broadcastActions.pauseBroadcasting(broadcastId)
     socketIO.in(broadcastId).emit('broadcaster paused')
   }

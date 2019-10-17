@@ -1,6 +1,6 @@
-const knex = require('./postgres.services')
 const broadcastServices = require('./broadcast.services')
 const viewerServices = require('./viewer.services')
+const logger = require('../logger')
 
 const setupBroadcast = async (
   spotifyUserId,
@@ -10,19 +10,17 @@ const setupBroadcast = async (
 ) => {
   try {
     const existingBroadcast = await broadcastServices.getById(spotifyUserId)
-    console.log('Existing Broadcast: ', existingBroadcast)
 
     if (existingBroadcast) {
-      console.log(
-        `Updating broadcaster info: ${spotifyUserId}, ${broadcasterName}, ${profileImageUrl}, ${socketId}`
-      )
-      const updatedBroadcast = await broadcastServices.updateBroadcasterInfo(
+      await broadcastServices.updateBroadcasterInfo(
         spotifyUserId,
         broadcasterName,
         profileImageUrl,
         socketId
       )
-      console.log('Successfully updated broadcast', updatedBroadcast)
+      logger.info(
+        `broadcast: ${spotifyUserId} - Updated broadcaster info:  ${broadcasterName}, ${profileImageUrl}, ${socketId}`
+      )
     } else {
       const broadcastRow = await broadcastServices.insertBroadcasterInfo(
         spotifyUserId,
@@ -30,11 +28,11 @@ const setupBroadcast = async (
         profileImageUrl,
         socketId
       )
-      console.log('Successfully created broadcast', broadcastRow)
+      logger.info('Successfully created broadcast', broadcastRow)
     }
     return spotifyUserId
   } catch (e) {
-    console.error('Failed to create broadcast', e)
+    logger.error('Failed to create broadcast', e)
     throw e
   }
 }
@@ -82,14 +80,20 @@ const update = async (broadcastId, currentlyPlaying) => {
   //determine if we need to update listeners
   let prev, prevUpdateTime
 
-  const broadcast = broadcastServices.getById(broadcastId)
+  const broadcast = await broadcastServices.getById(broadcastId)
+
+  if (!broadcast) {
+    logger.error(
+      `Attempted to update broadcast ${broadcastId} but it has not been initialized`
+    )
+  }
 
   if (broadcast) {
     prev = broadcast.currentlyPlaying
     prevUpdateTime = broadcast.lastUpdated
   }
 
-  const updateListeners = shouldUpdateListeners(
+  const isListenerUpdateRequired = shouldUpdateListeners(
     prev,
     prevUpdateTime,
     currentlyPlaying
@@ -97,11 +101,10 @@ const update = async (broadcastId, currentlyPlaying) => {
 
   await broadcastServices.updateCurrentlyPlaying(broadcastId, currentlyPlaying)
 
-  return updateListeners
+  return isListenerUpdateRequired
 }
 
 const handleBroadcasterDisconnect = async broadcastId => {
-  console.log('handle broadcaster disconnect', broadcastId)
   await broadcastServices.updateIsBroadcasterConnected(broadcastId, false)
 }
 

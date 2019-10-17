@@ -2,6 +2,7 @@ const axios = require('axios')
 const express = require('express')
 const router = express.Router()
 const querystring = require('querystring')
+const logger = require('../logger')
 
 const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, APP_BASE_URL } = process.env
 
@@ -89,7 +90,7 @@ router.post('/getAccessToken', async function(req, res) {
 
     res.send(response.data)
   } catch (error) {
-    console.log(error)
+    logger.error(error)
     res.redirect(
       '/#' +
         querystring.stringify({
@@ -125,7 +126,7 @@ router.post('/refreshToken', async (req, res, next) => {
 
     res.send(response.data)
   } catch (err) {
-    console.log(err)
+    logger.error(err)
     res.redirect(
       '/#' +
         querystring.stringify({
