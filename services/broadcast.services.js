@@ -64,14 +64,17 @@ const getBySocketId = async socketId => {
 }
 
 const updateCurrentlyPlaying = async (id, currentlyPlaying) => {
-  await knex('broadcasts')
-    .where({ id })
-    .update({
-      isBroadcasterConnected: true,
-      isBroadcasting: true,
-      currentlyPlaying,
-      lastUpdated: new Date()
-    })
+  const _currentlyPlaying = currentlyPlaying ? currentlyPlaying : null
+
+  if (!currentlyPlaying)
+    await knex('broadcasts')
+      .where({ id })
+      .update({
+        isBroadcasterConnected: true,
+        isBroadcasting: true,
+        currentlyPlaying: _currentlyPlaying,
+        lastUpdated: new Date()
+      })
 }
 
 const updateIsBroadcasting = async (id, isBroadcasting) => {

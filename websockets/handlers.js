@@ -119,12 +119,18 @@ const makeHandlers = (client, socketIO) => {
     socketIO.in(broadcastId).emit('broadcaster paused')
   }
 
+  const handleChatMessage = async (message, broadcastId) => {
+    console.log('received chat message', message, broadcastId)
+    socketIO.in(broadcastId).emit('message', message)
+  }
+
   return {
     handleInitBroadcast,
     handleClientDisconnect,
     handleClientJoin,
     handleUpdateBroadcast,
-    handlePauseBroadcast
+    handlePauseBroadcast,
+    handleChatMessage
   }
 }
 

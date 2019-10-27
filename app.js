@@ -43,13 +43,15 @@ io.on('connection', function(socket) {
     handleClientDisconnect,
     handleClientJoin,
     handleUpdateBroadcast,
-    handlePauseBroadcast
+    handlePauseBroadcast,
+    handleChatMessage
   } = makeHandlers(socket, io)
   socket.on('init broadcast', handleInitBroadcast)
   socket.on('update broadcast', handleUpdateBroadcast)
   socket.on('pause broadcast', handlePauseBroadcast)
   socket.on('disconnect', handleClientDisconnect)
   socket.on('join', handleClientJoin)
+  socket.on('message', handleChatMessage)
 })
 
 module.exports = app
