@@ -72,6 +72,10 @@ const shouldUpdateListeners = (prev, prevUpdateTime, current) => {
     return false
   }
 
+  logger.info(
+    `listener update required - isSameSongId:${isSameSongId}, isSameIsPlaying:${isSameIsPlaying}, songSkipDetected:${songSkipDetected}`
+  )
+
   //default to returning true unless any of the above cases
   return true
 }

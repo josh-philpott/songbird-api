@@ -10,15 +10,19 @@ const makeHandlers = (client, socketIO) => {
     profileImageUrl,
     ackFunction
   ) => {
-    logger.debug('Called init broadcast')
+    logger.info(
+      `Called init broadcast ${spotifyUserId}, ${broadcasterName}, ${profileImageUrl},${ackFunction}`
+    )
     const broadcastId = await broadcastActions.setupBroadcast(
       spotifyUserId,
       broadcasterName,
       profileImageUrl,
       client.id
     )
+    console.log(broadcastId)
 
     client.join(broadcastId)
+    await handleClientJoin(spotifyUserId, true, spotifyUserId)
     logger.info(`broadcast: ${broadcastId} - initialized`)
 
     ackFunction(broadcastId)
@@ -70,6 +74,24 @@ const makeHandlers = (client, socketIO) => {
     profileImageUrl
   ) => {
     client.join(broadcastId)
+    console.log(broadcastId)
+    const broadcast = await broadcastActions.getById(broadcastId)
+    let viewers = await broadcastActions.getViewers(broadcastId)
+
+    //emit state of broadcast immedietly
+    console.log('emitting sob')
+    client.emit('sob', {
+      currentlyPlaying: broadcast.currentlyPlaying,
+      viewers,
+      broadcastMeta: {
+        id: broadcast.id,
+        profileImageUrl: broadcast.profileImageUrl,
+        displayName: broadcast.broadcasterName,
+        isConnected: broadcast.isBroadcasterConnected,
+        isSyncEnabled: broadcast.isBroadcasting,
+        lastUpdated: broadcast.lastUpdated
+      }
+    })
 
     if (broadcastId !== profileId) {
       await broadcastActions.addViewer(
@@ -80,16 +102,13 @@ const makeHandlers = (client, socketIO) => {
         profileImageUrl
       )
 
-      const viewers = await broadcastActions.getViewers(broadcastId)
-      client.emit('viewers update', viewers)
-
+      viewers = await broadcastActions.getViewers(broadcastId)
       logger.info(`broadcast: ${broadcastId} - viewers updated `, viewers)
       client.broadcast.to(broadcastId).emit('viewers update', viewers)
     }
 
     //user who just joined the broadcast will get a broadcast updated event
     //and everyone on the broadcast will get a viewers updated
-    const broadcast = await broadcastActions.getById(broadcastId)
     const currentlyPlaying = broadcast ? broadcast.currentlyPlaying : null
     if (currentlyPlaying) {
       client.emit('broadcast updated', currentlyPlaying)
@@ -120,7 +139,6 @@ const makeHandlers = (client, socketIO) => {
   }
 
   const handleChatMessage = async (message, broadcastId) => {
-    console.log('received chat message', message, broadcastId)
     socketIO.in(broadcastId).emit('message', message)
   }
 
