@@ -12,12 +12,12 @@ const spotifyRouter = require('./routes/spotify')
 const broadcastRouter = require('./routes/broadcast')
 
 const { makeHandlers } = require('./websockets/handlers')
+const port = process.env.PORT || 3001
+logger.info(`Booting songbridge api. Starting server on port ${port}`)
 
-logger.info('Booting songbridge api')
 const app = express()
-const http = require('http').createServer(app)
+const http = require('http').Server(app)
 const io = require('socket.io')(http)
-http.listen(process.env.PORT || 3001)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
@@ -52,6 +52,10 @@ io.on('connection', function(socket) {
   socket.on('disconnect', handleClientDisconnect)
   socket.on('join', handleClientJoin)
   socket.on('message', handleChatMessage)
+  socket.on('echo', function(msg) {
+    io.emit('echo', msg)
+  })
 })
 
+http.listen(port)
 module.exports = app
