@@ -6,12 +6,11 @@ const insertBroadcasterInfo = async (
   profileImageUrl,
   socketId
 ) => {
-  return await knex('broadcasts').insert({
+  return await knex('broadcast').insert({
     id,
     broadcasterName,
     profileImageUrl,
-    socketId,
-    lastUpdated: new Date()
+    socketId
   })
 }
 
@@ -21,24 +20,23 @@ const updateBroadcasterInfo = async (
   profileImageUrl,
   socketId
 ) => {
-  return await knex('broadcasts')
+  return await knex('broadcast')
     .where({ id })
     .update({
       broadcasterName,
       profileImageUrl,
-      socketId,
-      lastUpdated: new Date()
+      socketId
     })
 }
 
 const updateIsBroadcasterConnected = async (id, isBroadcasterConnected) => {
-  return await knex('broadcasts')
+  return await knex('broadcast')
     .where({ id })
-    .update({ isBroadcasterConnected, lastUpdated: new Date() })
+    .update({ isBroadcasterConnected })
 }
 
 const getById = async id => {
-  return await knex('broadcasts')
+  return await knex('broadcast')
     .where({
       id
     })
@@ -46,19 +44,19 @@ const getById = async id => {
 }
 
 const getCurrentlyPlayingById = async id => {
-  knex('broadcasts')
+  knex('broadcast')
     .where({ id })
     .select('currentlyPlaying')
     .first()
 }
 
 const getIds = async () => {
-  return await knex('broadcasts').select('id')
+  return await knex('broadcast').select('id')
 }
 
 const getBySocketId = async socketId => {
   // There should only be one broadcast per socketId.
-  return await knex('broadcasts')
+  return await knex('broadcast')
     .where({ socketId })
     .first()
 }
@@ -66,18 +64,17 @@ const getBySocketId = async socketId => {
 const updateCurrentlyPlaying = async (id, currentlyPlaying) => {
   const _currentlyPlaying = currentlyPlaying ? currentlyPlaying : null
 
-  await knex('broadcasts')
+  await knex('broadcast')
     .where({ id })
     .update({
       isBroadcasterConnected: true,
       isBroadcasting: true,
-      currentlyPlaying: _currentlyPlaying,
-      lastUpdated: new Date()
+      currentlyPlaying: _currentlyPlaying
     })
 }
 
 const updateIsBroadcasting = async (id, isBroadcasting) => {
-  await knex('broadcasts')
+  await knex('broadcast')
     .where({ id })
     .update({
       isBroadcasting

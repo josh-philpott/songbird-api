@@ -2,7 +2,7 @@ const knex = require('./postgres.services')
 const logger = require('../logger')
 
 const getViewersByBroadcastId = async broadcastId => {
-  return await knex('viewers').where({ broadcastId })
+  return await knex('viewer').where({ broadcastId })
 }
 
 const addViewerToBroadcast = async (
@@ -12,7 +12,7 @@ const addViewerToBroadcast = async (
   profileImageUrl,
   socketId
 ) => {
-  return await knex('viewers').insert({
+  return await knex('viewer').insert({
     broadcastId,
     id,
     name,
@@ -22,7 +22,7 @@ const addViewerToBroadcast = async (
 }
 
 const removeViewerBySocketId = async socketId => {
-  return await knex('viewers')
+  return await knex('viewer')
     .where({ socketId })
     .returning('*')
     .delete()

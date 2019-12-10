@@ -94,7 +94,7 @@ const update = async (broadcastId, currentlyPlaying) => {
 
   if (broadcast) {
     prev = broadcast.currentlyPlaying
-    prevUpdateTime = broadcast.lastUpdated
+    prevUpdateTime = broadcast.updated_at
   }
 
   const isListenerUpdateRequired = shouldUpdateListeners(

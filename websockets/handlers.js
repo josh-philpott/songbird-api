@@ -89,7 +89,7 @@ const makeHandlers = (client, socketIO) => {
         displayName: broadcast.broadcasterName,
         isConnected: broadcast.isBroadcasterConnected,
         isSyncEnabled: broadcast.isBroadcasting,
-        lastUpdated: broadcast.lastUpdated
+        lastUpdated: broadcast.updated_at
       }
     })
 
