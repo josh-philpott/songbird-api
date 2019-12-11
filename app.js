@@ -11,13 +11,13 @@ const usersRouter = require('./routes/users')
 const spotifyRouter = require('./routes/spotify')
 const broadcastRouter = require('./routes/broadcast')
 
-const { makeHandlers } = require('./websockets/handlers')
-const port = process.env.PORT || 3001
-logger.info(`Booting songbridge api. Starting server on port ${port}`)
+//const port = process.env.PORT || 3001
+//logger.info(`Booting songbridge api. Starting server on port ${port}`)
 
 const app = express()
-const http = require('http').Server(app)
-const io = require('socket.io')(http)
+//const server = require('http').createServer(app)
+
+//const io = require('socket.io')(server)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
@@ -37,7 +37,7 @@ app.use(function(err, req, res, next) {
   next(err)
 })
 
-io.on('connection', function(socket) {
+/*io.on('connection', function(socket) {
   const {
     handleInitBroadcast,
     handleClientDisconnect,
@@ -55,7 +55,6 @@ io.on('connection', function(socket) {
   socket.on('echo', function(msg) {
     io.emit('echo', msg)
   })
-})
+})*/
 
-http.listen(port)
 module.exports = app

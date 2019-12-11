@@ -25,7 +25,7 @@ const makeHandlers = (client, socketIO) => {
     await handleClientJoin(spotifyUserId, true, spotifyUserId)
     logger.info(`broadcast: ${broadcastId} - initialized`)
 
-    ackFunction(broadcastId)
+    // ackFunction(broadcastId)
   }
 
   const handleClientDisconnect = async () => {
@@ -74,12 +74,9 @@ const makeHandlers = (client, socketIO) => {
     profileImageUrl
   ) => {
     client.join(broadcastId)
-    console.log(broadcastId)
     const broadcast = await broadcastActions.getById(broadcastId)
     let viewers = await broadcastActions.getViewers(broadcastId)
 
-    //emit state of broadcast immedietly
-    console.log('emitting sob')
     client.emit('sob', {
       currentlyPlaying: broadcast.currentlyPlaying,
       viewers,
