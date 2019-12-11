@@ -6,7 +6,7 @@ exports.up = function(knex) {
       table.string('broadcastId').notNullable()
       table.string('id').notNullable()
       table.string('name')
-      table.time('profileImageUrl')
+      table.string('profileImageUrl')
       table.string('socketId').notNullable()
       table.timestamps(true, true)
     })
